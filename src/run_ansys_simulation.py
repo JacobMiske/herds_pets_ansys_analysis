@@ -5,6 +5,7 @@ from parser_utils import create_parser
 from logging_utils import init_logging, delete_non_cdb_files
 import os
 from multiprocessing import Process, Queue
+import gc
 
 def run_simulation_with_timeout(simulation_vars, timeout=1800):
     """
@@ -29,9 +30,19 @@ def run_simulation_with_timeout(simulation_vars, timeout=1800):
         p.terminate()
         p.join()
         print("Simulation terminated due to timeout.")
+        queue.close()
+        queue.join_thread()
+        del queue
+        gc.collect()
         return None
     else:
-        return queue.get()
+        result = queue.get()
+        queue.close()
+        queue.join_thread()
+        del queue
+        gc.collect()
+        return result
+        
 
 def run_simulation(filename, folder_path, mech_type, boundary_condition_function, percent_displacement=1.0, substeps=10, num_elements=20, num_cross_elements=10, element_type="BEAM188", result_filename=None, scale=1.0, cross_scale=0.6, E=962.8, fixed_displacement=None, warp=False):
     """
@@ -78,6 +89,9 @@ def run_simulation(filename, folder_path, mech_type, boundary_condition_function
     
     # Delete non-CDB files
     delete_non_cdb_files(log_dir)
+    
+    # Close the MAPDL instance
+    mapdl.exit()
     
     return solved
 
