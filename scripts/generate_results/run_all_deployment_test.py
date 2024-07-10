@@ -15,7 +15,7 @@ def main():
         "mech_type": "PET",
         "boundary_condition_function": "cant_x",
         "percent_displacement": 1.0,
-        "substeps": 10,
+        "substeps": 100,
         "num_elements": 10,
         "num_cross_elements": 3,
         "element_type": "BEAM188",
